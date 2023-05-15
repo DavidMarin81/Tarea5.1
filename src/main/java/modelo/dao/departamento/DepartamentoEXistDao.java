@@ -7,6 +7,7 @@ package modelo.dao.departamento;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -259,17 +260,175 @@ public class DepartamentoEXistDao extends AbstractGenericDao<Departamento> imple
 
 	@Override
 	public boolean update(Departamento entity) {
-		return false;
+		boolean updated = false;
+		
+		try (Collection col = DatabaseManager.getCollection(dataSource.getUrl() + dataSource.getColeccionDepartamentos(),
+				dataSource.getUser(), dataSource.getPwd())) {
+
+			XQueryService xqs = (XQueryService) col.getService("XQueryService", "1.0");
+			xqs.setProperty("indent", "yes");
+		
+			String query = "update value /departamentos/DEP_ROW[DEPT_NO='" + entity.getDeptno() + "']/DNOMBRE with'" + entity.getDname() + "'";
+			String query2 = "update value /departamentos/DEP_ROW[DEPT_NO='" + entity.getDeptno() + "']/LOC with'" + entity.getLoc() + "'";
+
+			CompiledExpression compiled = xqs.compile(query);
+			ResourceSet result = xqs.execute(compiled);
+			
+			updated = true;
+
+//			if (result.getSize() == 0)
+//				throw new InstanceNotFoundException(null, Departamento.class.getName());
+
+			
+			ResourceIterator i = result.getIterator();
+			Resource res = null;
+			while (i.hasMoreResources()) {
+				try {
+					res = i.nextResource();
+					System.out.println(res.getContent().toString());
+				} finally {
+					// dont forget to cleanup resources
+					try {
+						((EXistResource) res).freeResources();
+					} catch (XMLDBException xe) {
+						xe.printStackTrace();
+					}
+				}
+			}
+
+		} catch (XMLDBException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return updated;
 	}
 
 	@Override
 	public boolean delete(Departamento entity) {
-		return false;
+		boolean deleted = false;
+		
+		try (Collection col = DatabaseManager.getCollection(dataSource.getUrl() + dataSource.getColeccionDepartamentos(),
+				dataSource.getUser(), dataSource.getPwd())) {
+
+			XQueryService xqs = (XQueryService) col.getService("XQueryService", "1.0");
+			xqs.setProperty("indent", "yes");
+		
+			String query = "update delete /departamentos/DEP_ROW[DEPT_NO='" + entity.getDeptno() + "']";
+
+			CompiledExpression compiled = xqs.compile(query);
+			ResourceSet result = xqs.execute(compiled);
+			
+			deleted = true;
+
+//			if (result.getSize() == 0)
+//				throw new InstanceNotFoundException(null, Departamento.class.getName());
+
+			
+			ResourceIterator i = result.getIterator();
+			Resource res = null;
+			while (i.hasMoreResources()) {
+				try {
+					res = i.nextResource();
+					System.out.println(res.getContent().toString());
+				} finally {
+					// dont forget to cleanup resources
+					try {
+						((EXistResource) res).freeResources();
+					} catch (XMLDBException xe) {
+						xe.printStackTrace();
+					}
+				}
+			}
+
+		} catch (XMLDBException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return deleted;
 	}
 
 	@Override
 	public List<Departamento> findAll() {
-		return null;
+		List<Departamento> depts = new ArrayList<Departamento>();
+		try (Collection col = DatabaseManager.getCollection(dataSource.getUrl() + dataSource.getColeccionDepartamentos(),
+				dataSource.getUser(), dataSource.getPwd())) {
+
+			XQueryService xqs = (XQueryService) col.getService("XQueryService", "1.0");
+			xqs.setProperty("indent", "yes");
+
+			CompiledExpression compiled = xqs.compile("/departamentos");
+			ResourceSet result = xqs.execute(compiled);
+
+			if (result.getSize() == 0)
+				throw new InstanceNotFoundException(null, Departamento.class.getName());
+
+			ResourceIterator i = result.getIterator();
+			Resource res = null;
+			while (i.hasMoreResources()) {
+				try {
+					res = i.nextResource();
+					System.out.println(res.getContent().toString());
+					depts = stringNodeToListDepartamento(res.getContent().toString());
+				} finally {
+					// dont forget to cleanup resources
+					try {
+						((EXistResource) res).freeResources();
+					} catch (XMLDBException xe) {
+						depts = null;
+						xe.printStackTrace();
+					}
+				}
+			}
+
+		} catch (XMLDBException | InstanceNotFoundException e) {
+			depts = null;
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		//Se imprimen los departamentos
+		System.out.println("Se imprimen los departamentos");
+		for (Departamento d : depts) {
+			System.out.println(d);
+		}
+		
+		return depts;
+	}
+	
+	private List<Departamento> stringNodeToListDepartamento(String nodeString) {
+		Element node = null;
+		Departamento departamento = null;
+		List<Departamento> depts = new ArrayList<Departamento>();
+		try {
+			node = DocumentBuilderFactory.newInstance().newDocumentBuilder()
+					.parse(new ByteArrayInputStream(nodeString.getBytes())).getDocumentElement();
+			NodeList nList = node.getElementsByTagName("DEP_ROW");
+			for(int i = 0; i < nList.getLength(); i++) {
+				String nombre = node.getElementsByTagName("DNOMBRE").item(i).getTextContent();
+				String location = node.getElementsByTagName("LOC").item(i).getTextContent();
+				Integer id = Integer.parseInt(node.getElementsByTagName("DEPT_NO").item(i).getTextContent());
+			
+				departamento = new Departamento(nombre, location);
+				departamento.setDeptno(id);
+				depts.add(departamento);
+				
+			}
+			
+		} catch (SAXException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ParserConfigurationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		
+		return depts;
 	}
 
 }

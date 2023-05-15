@@ -165,6 +165,7 @@ public class DeptWindow extends JFrame {
 						showDialog();
 					}
 				}
+				
 			}
 		};
 
@@ -249,7 +250,7 @@ public class DeptWindow extends JFrame {
 					if (!exito) {
 						addMensaje(true, "No se ha editado correctamete el departamento");
 					} else {
-						addMensaje(true, " El departamento no se ha actualizado correctamente");
+						addMensaje(true, " El departamento se ha actualizado correctamente"); // Pone que NO se ha actualizado correctamente
 					}
 
 				} catch (Exception ex) {
