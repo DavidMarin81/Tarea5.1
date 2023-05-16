@@ -124,6 +124,9 @@ public class CreateNewDeptDialog extends JDialog {
 						// Solo para creación
 						departamentoACrearOActualizar = new Departamento();
 					}
+					
+					
+					
 					departamentoACrearOActualizar.setDname(textFieldNombreDept.getText().trim());
 					departamentoACrearOActualizar.setLoc(textFieldUbicacion.getText().trim());
 					int deptno = getDeptnoFromTextField();

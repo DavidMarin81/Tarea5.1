@@ -276,5 +276,14 @@ public class DeptWindow extends JFrame {
 		JListAllDepts.setModel(defModel);
 
 	}
+	
+	private boolean exists(int deptNo) {
+		boolean existe = false;
+		
+		
+		
+		return existe;
+		
+	}
 
 }

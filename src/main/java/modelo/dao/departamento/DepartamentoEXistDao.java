@@ -273,6 +273,8 @@ public class DepartamentoEXistDao extends AbstractGenericDao<Departamento> imple
 
 			CompiledExpression compiled = xqs.compile(query);
 			ResourceSet result = xqs.execute(compiled);
+			CompiledExpression compiled2 = xqs.compile(query2);
+			ResourceSet result2 = xqs.execute(compiled2);
 			
 			updated = true;
 

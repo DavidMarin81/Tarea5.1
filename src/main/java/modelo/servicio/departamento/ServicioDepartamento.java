@@ -19,8 +19,29 @@ public class ServicioDepartamento implements IServicioDepartamento {
 	@Override
 	public boolean create(Departamento dept) throws DuplicateInstanceException {
 		
-			return departamentoDao.create(dept);		
+		if (exists(dept)) {
+			throw new DuplicateInstanceException(null, dept, Departamento.class.getName());
+		} 
+		
+		return departamentoDao.create(dept);		
 
+	}
+	
+	public boolean exists(Departamento dept) throws DuplicateInstanceException {
+		boolean exists = false;
+		Departamento dep;
+		try {
+			dep = read(dept.getDeptno());
+			if (dep.getDeptno() == dept.getDeptno()) {
+				exists = true;
+				throw new DuplicateInstanceException(null, dep, null);
+			}
+		} catch (InstanceNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return exists;
 	}
 
 	@Override
